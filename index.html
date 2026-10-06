@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grey Duck Mini MMR</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Dark mode background polish */
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+
+  <!-- Header / Navbar -->
+  <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="bg-amber-500 text-slate-900 font-bold p-2 rounded-lg">
+          <i class="fa-solid font-bold text-xl">🦆</i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">Grey Duck Mini</h1>
+          <p class="text-xs text-slate-400">Ultimate Frisbee MMR</p>
+        </div>
+      </div>
+      
+      <!-- API Connection Status Badge -->
+      <button onclick="promptApiUrl()" id="api-status" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-full flex items-center space-x-2 border border-slate-600 transition">
+        <span id="status-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+        <span id="status-text" class="text-slate-300">Connecting...</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-slate-800/50 border-b border-slate-700/50">
+    <div class="max-w-4xl mx-auto px-4 flex space-x-2 overflow-x-auto py-2 text-sm font-medium">
+      <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="tab-btn active px-4 py-2 rounded-lg bg-indigo-600 text-white flex items-center space-x-2">
+        <i class="fa-solid fa-trophy"></i>
+        <span>Leaderboard</span>
+      </button>
+      <button onclick="switchTab('matchmaker')" id="tab-matchmaker" class="tab-btn px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-700/50 flex items-center space-x-2">
+        <i class="fa-solid fa-users"></i>
+        <span>Matchmaker</span>
+      </button>
+      <button onclick="switchTab('record')" id="tab-record" class="tab-btn px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-700/50 flex items-center space-x-2">
+        <i class="fa-solid fa-gamepad"></i>
+        <span>Record Game</span>
+      </button>
+      <button onclick="switchTab('players')" id="tab-players" class="tab-btn px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-700/50 flex items-center space-x-2">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Players</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-4xl w-full mx-auto p-4">
+
+    <!-- 1. LEADERBOARD TAB -->
+    <section id="view-leaderboard" class="tab-content block">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-slate-100">Player Standings</h2>
+        <button onclick="fetchLeaderboard()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-slate-300">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+        </button>
+      </div>
+
+      <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-900/60 text-xs text-slate-400 uppercase border-b border-slate-700">
+              <th class="p-3">Rank</th>
+              <th class="p-3">Player</th>
+              <th class="p-3 text-center">MMR</th>
+              <th class="p-3 text-right">W - L</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body" class="divide-y divide-slate-700/50 text-sm">
+            <tr>
+              <td colspan="4" class="p-6 text-center text-slate-400">Loading standings...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. MATCHMAKER TAB -->
+    <section id="view-matchmaker" class="tab-content hidden">
+      <h2 class="text-xl font-bold mb-4 text-slate-100">Generate Balanced Teams</h2>
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
+        <p class="text-sm text-slate-400">Select present players to split into two balanced teams:</p>
+        <div id="checkin-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <!-- Checkbox list populated dynamically -->
+        </div>
+        <button onclick="generateTeams()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition">
+          Auto-Balance Teams
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. RECORD GAME TAB -->
+    <section id="view-record" class="tab-content hidden">
+      <h2 class="text-xl font-bold mb-4 text-slate-100">Record Game Results</h2>
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+        <p class="text-sm text-slate-400 mb-4">Log match outcomes to automatically re-calculate player MMRs.</p>
+        <!-- Custom game submission form will go here -->
+      </div>
+    </section>
+
+    <!-- 4. PLAYERS TAB -->
+    <section id="view-players" class="tab-content hidden">
+      <h2 class="text-xl font-bold mb-4 text-slate-100">Add New Player</h2>
+      <form onsubmit="addPlayer(event)" class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex gap-2">
+        <input type="text" id="new-player-name" placeholder="Enter player name..." required class="flex-grow px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-indigo-500 text-slate-100">
+        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-lg transition">Add</button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- JavaScript App Logic -->
+  <script>
+    // Configured Render Backend URL
+    let apiBaseUrl = localStorage.getItem("mmr_api_url") || "https://grey-duck-mini-api.onrender.com";
+
+    // Tab Switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-indigo-600', 'text-white');
+        el.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`view-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      activeBtn.classList.add('bg-indigo-600', 'text-white');
+      activeBtn.classList.remove('text-slate-400');
+
+      if (tabName === 'leaderboard') fetchLeaderboard();
+    }
+
+    // Configure Custom Backend URL
+    function promptApiUrl() {
+      const url = prompt("Enter your Render FastAPI backend URL:", apiBaseUrl);
+      if (url) {
+        apiBaseUrl = url.replace(/\/$/, "");
+        localStorage.setItem("mmr_api_url", apiBaseUrl);
+        checkApiHealth();
+      }
+    }
+
+    // Health Check
+    async function checkApiHealth() {
+      const dot = document.getElementById("status-dot");
+      const text = document.getElementById("status-text");
+      try {
+        const res = await fetch(`${apiBaseUrl}/docs`);
+        if (res.ok || res.status === 200) {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+          text.innerText = "Connected";
+          fetchLeaderboard();
+        } else {
+          throw new Error();
+        }
+      } catch {
+        dot.className = "w-2 h-2 rounded-full bg-rose-500";
+        text.innerText = "Offline";
+      }
+    }
+
+    // Fetch Leaderboard
+    async function fetchLeaderboard() {
+      const tbody = document.getElementById("leaderboard-body");
+      try {
+        const res = await fetch(`${apiBaseUrl}/players/`);
+        const players = await res.json();
+        
+        if (players.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">No players registered yet. Add players in the "Players" tab!</td></tr>`;
+          return;
+        }
+
+        // Sort by ordinal rating descending
+        players.sort((a, b) => (b.ordinal || 0) - (a.ordinal || 0));
+
+        tbody.innerHTML = players.map((p, index) => `
+          <tr class="hover:bg-slate-700/30">
+            <td class="p-3 font-bold text-slate-400">${index + 1}</td>
+            <td class="p-3 font-semibold text-slate-100">${p.name}</td>
+            <td class="p-3 text-center text-amber-400 font-bold">${p.ordinal || '25.0'}</td>
+            <td class="p-3 text-right text-slate-400">${p.wins}W - ${p.losses}L</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-rose-400">Error connecting to server.</td></tr>`;
+      }
+    }
+
+    // Add Player
+    async function addPlayer(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById("new-player-name");
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      try {
+        const res = await fetch(`${apiBaseUrl}/players/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name })
+        });
+        if (res.ok) {
+          nameInput.value = "";
+          alert(`Added ${name}!`);
+          switchTab("leaderboard");
+        } else {
+          alert("Error adding player or player already exists.");
+        }
+      } catch {
+        alert("Failed to reach server.");
+      }
+    }
+
+    // On Load
+    checkApiHealth();
+  </script>
+</body>
+</html>
