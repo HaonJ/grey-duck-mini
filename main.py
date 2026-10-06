@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 from typing import List
@@ -6,7 +7,15 @@ from typing import List
 # Import our DB setup and Player model from database.py!
 from database import SessionLocal, Player
 
-app = FastAPI(title="Ultimate Frisbee MMR")
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows requests from any frontend origin (e.g. GitHub Pages)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows GET, POST, OPTIONS, etc.
+    allow_headers=["*"],
+)
 
 # Dependency to open and close DB session for each API request
 def get_db():
