@@ -2,19 +2,20 @@ import os
 from sqlalchemy import Column, Float, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Fetch Turso credentials from environment variables (Render Cloud)
 TURSO_DB_URL = os.getenv("TURSO_DATABASE_URL")
 TURSO_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
 
 if TURSO_DB_URL and TURSO_TOKEN:
-    # --- PRODUCTION MODE (Turso Cloud via Hrana/HTTP) ---
-    # Convert libsql:// or https:// to HTTP URL
-    http_url = TURSO_DB_URL.replace("libsql://", "https://")
-    
-    # Connect via Hrana driver
-    db_url = f"sqlite+hrana://{http_url.replace('https://', '')}?jwt={TURSO_TOKEN}"
-    
-    engine = create_engine(db_url)
+    # --- PRODUCTION MODE (Turso Cloud) ---
+    clean_url = TURSO_DB_URL.replace("libsql://", "").replace("https://", "")
+    db_url = f"sqlite+libsql://{clean_url}?secure=true"
+
+    engine = create_engine(
+        db_url,
+        connect_args={
+            "auth_token": TURSO_TOKEN,
+        },
+    )
 else:
     # --- LOCAL DEVELOPMENT FALLBACK ---
     engine = create_engine(
@@ -40,5 +41,4 @@ class Player(Base):
         return round(max(0.0, self.mu - (3.0 * self.sigma)), 2)
 
 
-# Automatically create database tables if they do not exist
 Base.metadata.create_all(bind=engine)
