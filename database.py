@@ -2,18 +2,21 @@ import os
 from sqlalchemy import Column, Float, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Read Turso credentials from environment variables
+# Fetch Turso credentials from environment variables (Render Cloud)
 TURSO_DB_URL = os.getenv("TURSO_DATABASE_URL")
 TURSO_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
 
 if TURSO_DB_URL and TURSO_TOKEN:
-    # Production Mode (Turso Cloud)
-    # Convert libsql:// to sqlite+libsql:// for SQLAlchemy compatibility
-    url = TURSO_DB_URL.replace("libsql://", "sqlite+libsql://")
-    db_url = f"{url}?auth_token={TURSO_TOKEN}"
-    engine = create_engine(db_url, connect_args={"check_same_thread": False})
+    # --- PRODUCTION MODE (Turso Cloud via Hrana/HTTP) ---
+    # Convert libsql:// or https:// to HTTP URL
+    http_url = TURSO_DB_URL.replace("libsql://", "https://")
+    
+    # Connect via Hrana driver
+    db_url = f"sqlite+hrana://{http_url.replace('https://', '')}?jwt={TURSO_TOKEN}"
+    
+    engine = create_engine(db_url)
 else:
-    # Local Development Fallback
+    # --- LOCAL DEVELOPMENT FALLBACK ---
     engine = create_engine(
         "sqlite:///./ultimate_frisbee.db", connect_args={"check_same_thread": False}
     )
@@ -37,4 +40,5 @@ class Player(Base):
         return round(max(0.0, self.mu - (3.0 * self.sigma)), 2)
 
 
+# Automatically create database tables if they do not exist
 Base.metadata.create_all(bind=engine)

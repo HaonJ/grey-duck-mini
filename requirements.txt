@@ -3,4 +3,5 @@ uvicorn[standard]
 sqlalchemy
 openskill
 pydantic
-sqlalchemy-libsql
+hrana-client-python
+requests
