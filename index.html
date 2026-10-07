@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
 
-  <!-- Navigation Bar -->
+  <!-- Navigation Header -->
   <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
@@ -16,19 +16,19 @@
         <h1 class="font-bold text-lg text-emerald-400">Grey Duck Mini</h1>
       </div>
       <div class="flex items-center gap-3">
-        <!-- Status Indicator -->
         <button onclick="promptApiUrl()" class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-xs font-mono">
           <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
           <span id="status-text">Connecting...</span>
         </button>
       </div>
     </div>
-    <!-- Tabs -->
-    <nav class="max-w-4xl mx-auto px-4 flex border-t border-slate-700/50">
-      <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="px-4 py-2 text-sm font-semibold border-b-2 border-emerald-400 text-emerald-400">Leaderboard</button>
-      <button onclick="switchTab('matches')" id="tab-matches" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200">Match History</button>
-      <button onclick="switchTab('record')" id="tab-record" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200">Record Match</button>
-      <button onclick="switchTab('players')" id="tab-players" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200">Register</button>
+    <!-- Navigation Tabs -->
+    <nav class="max-w-4xl mx-auto px-4 flex border-t border-slate-700/50 overflow-x-auto">
+      <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="px-4 py-2 text-sm font-semibold border-b-2 border-emerald-400 text-emerald-400 whitespace-nowrap">Leaderboard</button>
+      <button onclick="switchTab('matchmaker')" id="tab-matchmaker" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 whitespace-nowrap">Matchmaker</button>
+      <button onclick="switchTab('matches')" id="tab-matches" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 whitespace-nowrap">History</button>
+      <button onclick="switchTab('record')" id="tab-record" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 whitespace-nowrap">Record Match</button>
+      <button onclick="switchTab('players')" id="tab-players" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 whitespace-nowrap">Register</button>
     </nav>
   </header>
 
@@ -43,7 +43,7 @@
             <tr>
               <th class="p-3">Rank</th>
               <th class="p-3">Player</th>
-              <th class="p-3 text-center">MMR (Ordinal)</th>
+              <th class="p-3 text-center">MMR</th>
               <th class="p-3 text-center">W / L</th>
             </tr>
           </thead>
@@ -51,6 +51,53 @@
             <tr><td colspan="4" class="p-4 text-center text-slate-500">Loading players...</td></tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- MATCHMAKER / TEAM GENERATOR TAB -->
+    <section id="view-matchmaker" class="space-y-4 hidden">
+      <h2 class="text-xl font-bold text-slate-200">Team Generator</h2>
+      <p class="text-xs text-slate-400">Select players present today to generate balanced or random teams.</p>
+      
+      <div class="bg-slate-800 border border-slate-700 p-4 rounded-lg space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Check Present Players:</label>
+          <div id="matchmaker-player-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-900/60 p-3 rounded border border-slate-700 max-h-48 overflow-y-auto">
+            <span class="text-xs text-slate-500">Loading players...</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button onclick="generateTeams('balanced')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-2 px-4 rounded text-sm">
+            ⚖️ Generate Balanced Teams
+          </button>
+          <button onclick="generateTeams('random')" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded text-sm">
+            🎲 Randomize Teams
+          </button>
+        </div>
+      </div>
+
+      <!-- Generated Results Display -->
+      <div id="generated-teams-container" class="hidden space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-800 border border-emerald-500/40 p-4 rounded-lg">
+            <h3 class="font-bold text-emerald-400 mb-2 flex justify-between">
+              <span>Team 1</span>
+              <span id="team1-avg-mmr" class="text-xs font-mono text-slate-400"></span>
+            </h3>
+            <ul id="team1-list" class="space-y-1 text-sm text-slate-200"></ul>
+          </div>
+          <div class="bg-slate-800 border border-indigo-500/40 p-4 rounded-lg">
+            <h3 class="font-bold text-indigo-400 mb-2 flex justify-between">
+              <span>Team 2</span>
+              <span id="team2-avg-mmr" class="text-xs font-mono text-slate-400"></span>
+            </h3>
+            <ul id="team2-list" class="space-y-1 text-sm text-slate-200"></ul>
+          </div>
+        </div>
+        <button onclick="sendTeamsToRecord()" class="w-full bg-slate-700 hover:bg-slate-600 text-emerald-400 border border-emerald-500/30 font-bold py-2 px-4 rounded text-sm">
+          ➡️ Send Teams to Record Match
+        </button>
       </div>
     </section>
 
@@ -67,20 +114,18 @@
       <h2 class="text-xl font-bold text-slate-200">Record Game Result</h2>
       <form onsubmit="submitMatch(event)" class="bg-slate-800 border border-slate-700 p-4 rounded-lg space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Team 1 -->
           <div class="space-y-2 bg-slate-900/50 p-3 rounded border border-slate-700">
             <h3 class="font-bold text-emerald-400">Team 1</h3>
-            <label class="text-xs text-slate-400">Select Players (hold Ctrl/Cmd to select multiple):</label>
+            <label class="text-xs text-slate-400">Select Players (Ctrl/Cmd to pick multiple):</label>
             <select id="match-team1" multiple class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-slate-200 h-28"></select>
             <div>
               <label class="text-xs text-slate-400">Score:</label>
               <input id="match-score1" type="number" min="0" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-slate-200">
             </div>
           </div>
-          <!-- Team 2 -->
           <div class="space-y-2 bg-slate-900/50 p-3 rounded border border-slate-700">
             <h3 class="font-bold text-indigo-400">Team 2</h3>
-            <label class="text-xs text-slate-400">Select Players (hold Ctrl/Cmd to select multiple):</label>
+            <label class="text-xs text-slate-400">Select Players (Ctrl/Cmd to pick multiple):</label>
             <select id="match-team2" multiple class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-slate-200 h-28"></select>
             <div>
               <label class="text-xs text-slate-400">Score:</label>
@@ -109,6 +154,8 @@
   <script>
     let apiBaseUrl = localStorage.getItem("mmr_api_url") || "https://grey-duck-mini-api.onrender.com";
     let cachedPlayers = [];
+    let currentGeneratedTeam1 = [];
+    let currentGeneratedTeam2 = [];
 
     function promptApiUrl() {
       const input = prompt("Enter backend Render URL:", apiBaseUrl);
@@ -128,7 +175,6 @@
           dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
           text.innerText = "Connected";
           fetchLeaderboard();
-          fetchMatches();
         } else {
           throw new Error();
         }
@@ -139,17 +185,18 @@
     }
 
     function switchTab(tab) {
-      ["leaderboard", "matches", "record", "players"].forEach(t => {
+      ["leaderboard", "matchmaker", "matches", "record", "players"].forEach(t => {
         document.getElementById(`view-${t}`).classList.add("hidden");
         const btn = document.getElementById(`tab-${t}`);
-        btn.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200";
+        if (btn) btn.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 whitespace-nowrap";
       });
 
       document.getElementById(`view-${tab}`).classList.remove("hidden");
       const activeBtn = document.getElementById(`tab-${tab}`);
-      activeBtn.className = "px-4 py-2 text-sm font-semibold border-b-2 border-emerald-400 text-emerald-400";
+      if (activeBtn) activeBtn.className = "px-4 py-2 text-sm font-semibold border-b-2 border-emerald-400 text-emerald-400 whitespace-nowrap";
 
       if (tab === "leaderboard") fetchLeaderboard();
+      if (tab === "matchmaker") renderMatchmakerCheckboxes();
       if (tab === "matches") fetchMatches();
       if (tab === "record") populatePlayerDropdowns();
     }
@@ -160,7 +207,6 @@
         if (!res.ok) throw new Error();
         cachedPlayers = await res.json();
         
-        // Sort by ordinal rating descending
         cachedPlayers.sort((a, b) => {
           const ordA = Math.max(0, a.mu - 3 * a.sigma);
           const ordB = Math.max(0, b.mu - 3 * b.sigma);
@@ -189,6 +235,83 @@
       }
     }
 
+    function renderMatchmakerCheckboxes() {
+      const container = document.getElementById("matchmaker-player-list");
+      if (cachedPlayers.length === 0) {
+        container.innerHTML = `<span class="text-xs text-slate-500">No players found. Register some first!</span>`;
+        return;
+      }
+      container.innerHTML = cachedPlayers.map(p => `
+        <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer select-none">
+          <input type="checkbox" value="${p.name}" class="mm-player-cb rounded bg-slate-800 border-slate-600 text-emerald-500 focus:ring-0">
+          <span>${p.name}</span>
+        </label>
+      `).join('');
+    }
+
+    function generateTeams(mode) {
+      const checkboxes = document.querySelectorAll('.mm-player-cb:checked');
+      const selectedNames = Array.from(checkboxes).map(cb => cb.value);
+
+      if (selectedNames.length < 2) {
+        alert("Please select at least 2 players to generate teams.");
+        return;
+      }
+
+      let selectedObjects = cachedPlayers.filter(p => selectedNames.includes(p.name));
+      let team1 = [];
+      let team2 = [];
+
+      if (mode === 'random') {
+        // Shuffle
+        selectedObjects.sort(() => Math.random() - 0.5);
+        selectedObjects.forEach((p, idx) => {
+          if (idx % 2 === 0) team1.push(p);
+          else team2.push(p);
+        });
+      } else {
+        // Balanced draft algorithm based on MMR ordinal
+        selectedObjects.sort((a, b) => {
+          const ordA = Math.max(0, a.mu - 3 * a.sigma);
+          const ordB = Math.max(0, b.mu - 3 * b.sigma);
+          return ordB - ordA;
+        });
+
+        let sum1 = 0, sum2 = 0;
+        selectedObjects.forEach(p => {
+          const ord = Math.max(0, p.mu - 3 * p.sigma);
+          if (sum1 <= sum2) {
+            team1.push(p);
+            sum1 += ord;
+          } else {
+            team2.push(p);
+            sum2 += ord;
+          }
+        });
+      }
+
+      currentGeneratedTeam1 = team1.map(p => p.name);
+      currentGeneratedTeam2 = team2.map(p => p.name);
+
+      const calcAvg = t => (t.reduce((acc, p) => acc + Math.max(0, p.mu - 3 * p.sigma), 0) / (t.length || 1)).toFixed(2);
+
+      document.getElementById("team1-list").innerHTML = team1.map(p => `<li>• ${p.name}</li>`).join('');
+      document.getElementById("team2-list").innerHTML = team2.map(p => `<li>• ${p.name}</li>`).join('');
+      document.getElementById("team1-avg-mmr").innerText = `Avg MMR: ${calcAvg(team1)}`;
+      document.getElementById("team2-avg-mmr").innerText = `Avg MMR: ${calcAvg(team2)}`;
+
+      document.getElementById("generated-teams-container").classList.remove("hidden");
+    }
+
+    function sendTeamsToRecord() {
+      switchTab("record");
+      const sel1 = document.getElementById("match-team1");
+      const sel2 = document.getElementById("match-team2");
+
+      Array.from(sel1.options).forEach(opt => opt.selected = currentGeneratedTeam1.includes(opt.value));
+      Array.from(sel2.options).forEach(opt => opt.selected = currentGeneratedTeam2.includes(opt.value));
+    }
+
     async function fetchMatches() {
       try {
         const res = await fetch(`${apiBaseUrl}/matches/`);
@@ -197,7 +320,7 @@
         const container = document.getElementById("matches-container");
 
         if (matches.length === 0) {
-          container.innerHTML = `<p class="text-slate-500 text-center py-4">No matches played yet.</p>`;
+          container.innerHTML = `<p class="text-slate-500 text-center py-4">No matches recorded yet.</p>`;
           return;
         }
 
@@ -267,7 +390,7 @@
       const s2 = parseInt(document.getElementById("match-score2").value);
 
       if (t1.length === 0 || t2.length === 0) {
-        alert("Please select at least one player for each team.");
+        alert("Select at least one player for each team.");
         return;
       }
 
@@ -294,7 +417,6 @@
       }
     }
 
-    // Run health check on page load
     checkApiHealth();
   </script>
 </body>

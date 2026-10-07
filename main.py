@@ -13,7 +13,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Force table creation on startup
 database.Base.metadata.create_all(bind=database.engine)
 
 def get_db():
