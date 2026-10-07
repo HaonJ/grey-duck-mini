@@ -1,23 +1,16 @@
 import os
-from sqlalchemy import Column, Float, Integer, String, create_engine
+from datetime import datetime
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 TURSO_DB_URL = os.getenv("TURSO_DATABASE_URL")
 TURSO_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
 
 if TURSO_DB_URL and TURSO_TOKEN:
-    # --- PRODUCTION MODE (Turso Cloud) ---
     clean_url = TURSO_DB_URL.replace("libsql://", "").replace("https://", "")
     db_url = f"sqlite+libsql://{clean_url}?secure=true"
-
-    engine = create_engine(
-        db_url,
-        connect_args={
-            "auth_token": TURSO_TOKEN,
-        },
-    )
+    engine = create_engine(db_url, connect_args={"auth_token": TURSO_TOKEN})
 else:
-    # --- LOCAL DEVELOPMENT FALLBACK ---
     engine = create_engine(
         "sqlite:///./ultimate_frisbee.db", connect_args={"check_same_thread": False}
     )
@@ -36,9 +29,16 @@ class Player(Base):
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
 
-    @property
-    def ordinal(self) -> float:
-        return round(max(0.0, self.mu - (3.0 * self.sigma)), 2)
+
+class Match(Base):
+    __tablename__ = "matches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    team1_players = Column(String, nullable=False)  # Comma-separated names
+    team2_players = Column(String, nullable=False)  # Comma-separated names
+    team1_score = Column(Integer, nullable=False)
+    team2_score = Column(Integer, nullable=False)
 
 
 Base.metadata.create_all(bind=engine)
