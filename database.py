@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, create_engine
+from sqlalchemy import Column, DateTime, Float, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 TURSO_DB_URL = os.getenv("TURSO_DATABASE_URL")
@@ -24,8 +24,9 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    mu = Column(Float, default=25.0)
-    sigma = Column(Float, default=8.333)
+    # Scaled OpenSkill values (Default starting rating ~ 500.0)
+    mu = Column(Float, default=1000.0)
+    sigma = Column(Float, default=333.33)
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
 
@@ -39,6 +40,7 @@ class Match(Base):
     team2_players = Column(String, nullable=False)  # Comma-separated names
     team1_score = Column(Integer, nullable=False)
     team2_score = Column(Integer, nullable=False)
+    mmr_change = Column(Float, default=0.0)  # Stores MMR delta per match
 
 
 Base.metadata.create_all(bind=engine)

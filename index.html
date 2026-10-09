@@ -9,18 +9,16 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
 
   <!-- Navigation Header -->
-  <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+  <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-40">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
         <span class="text-2xl">🦆</span>
         <h1 class="font-bold text-lg text-emerald-400">Grey Duck Mini</h1>
       </div>
-      <div class="flex items-center gap-3">
-        <button onclick="promptApiUrl()" class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-xs font-mono">
-          <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-          <span id="status-text">Connecting...</span>
-        </button>
-      </div>
+      <button onclick="promptApiUrl()" class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-xs font-mono">
+        <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+        <span id="status-text">Connecting...</span>
+      </button>
     </div>
     <!-- Navigation Tabs -->
     <nav class="max-w-4xl mx-auto px-4 flex border-t border-slate-700/50 overflow-x-auto">
@@ -54,59 +52,42 @@
       </div>
     </section>
 
-    <!-- MATCHMAKER / TEAM GENERATOR TAB -->
+    <!-- MATCHMAKER TAB -->
     <section id="view-matchmaker" class="space-y-4 hidden">
-      <h2 class="text-xl font-bold text-slate-200">Team Generator</h2>
-      <p class="text-xs text-slate-400">Select players present today to generate balanced or random teams.</p>
+      <h2 class="text-xl font-bold text-slate-200">Multi-Team Generator</h2>
       
       <div class="bg-slate-800 border border-slate-700 p-4 rounded-lg space-y-4">
+        <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-900/50 p-3 rounded border border-slate-700">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300">Number of Teams:</label>
+            <select id="num-teams-select" class="bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded p-1.5 mt-1">
+              <option value="2" selected>2 Teams</option>
+              <option value="3">3 Teams</option>
+              <option value="4">4 Teams</option>
+              <option value="5">5 Teams</option>
+              <option value="6">6 Teams</option>
+            </select>
+          </div>
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button onclick="generateTeams('balanced')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-2 px-3 rounded text-xs">⚖️ Balanced</button>
+            <button onclick="generateTeams('random')" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded text-xs">🎲 Random</button>
+          </div>
+        </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-2">Check Present Players:</label>
-          <div id="matchmaker-player-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-900/60 p-3 rounded border border-slate-700 max-h-48 overflow-y-auto">
-            <span class="text-xs text-slate-500">Loading players...</span>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <button onclick="generateTeams('balanced')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-2 px-4 rounded text-sm">
-            ⚖️ Generate Balanced Teams
-          </button>
-          <button onclick="generateTeams('random')" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded text-sm">
-            🎲 Randomize Teams
-          </button>
+          <div id="matchmaker-player-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-900/60 p-3 rounded border border-slate-700 max-h-52 overflow-y-auto"></div>
         </div>
       </div>
 
-      <!-- Generated Results Display -->
-      <div id="generated-teams-container" class="hidden space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-slate-800 border border-emerald-500/40 p-4 rounded-lg">
-            <h3 class="font-bold text-emerald-400 mb-2 flex justify-between">
-              <span>Team 1</span>
-              <span id="team1-avg-mmr" class="text-xs font-mono text-slate-400"></span>
-            </h3>
-            <ul id="team1-list" class="space-y-1 text-sm text-slate-200"></ul>
-          </div>
-          <div class="bg-slate-800 border border-indigo-500/40 p-4 rounded-lg">
-            <h3 class="font-bold text-indigo-400 mb-2 flex justify-between">
-              <span>Team 2</span>
-              <span id="team2-avg-mmr" class="text-xs font-mono text-slate-400"></span>
-            </h3>
-            <ul id="team2-list" class="space-y-1 text-sm text-slate-200"></ul>
-          </div>
-        </div>
-        <button onclick="sendTeamsToRecord()" class="w-full bg-slate-700 hover:bg-slate-600 text-emerald-400 border border-emerald-500/30 font-bold py-2 px-4 rounded text-sm">
-          ➡️ Send Teams to Record Match
-        </button>
-      </div>
+      <!-- Generated Results Container -->
+      <div id="generated-teams-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
     </section>
 
     <!-- MATCH HISTORY TAB -->
     <section id="view-matches" class="space-y-4 hidden">
-      <h2 class="text-xl font-bold text-slate-200">Game Scores & History</h2>
-      <div id="matches-container" class="space-y-3">
-        <p class="text-slate-500 text-center py-4">Loading match history...</p>
-      </div>
+      <h2 class="text-xl font-bold text-slate-200">Daily Game History</h2>
+      <div id="matches-grouped-container" class="space-y-6"></div>
     </section>
 
     <!-- RECORD MATCH TAB -->
@@ -143,7 +124,7 @@
       <form onsubmit="registerPlayer(event)" class="bg-slate-800 border border-slate-700 p-4 rounded-lg space-y-3 max-w-md">
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1">Player Name</label>
-          <input id="player-name-input" type="text" required placeholder="e.g. Goose" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-400">
+          <input id="player-name-input" type="text" required class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-400">
         </div>
         <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 font-bold py-2 px-4 rounded text-slate-900 text-sm w-full">Add Player</button>
       </form>
@@ -151,11 +132,42 @@
 
   </main>
 
+  <!-- EDIT MATCH MODAL -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-lg max-w-md w-full p-4 space-y-4">
+      <h3 class="text-lg font-bold text-slate-200">Edit Game Result</h3>
+      <input type="hidden" id="edit-match-id">
+      
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-400">Team 1 Players (comma-separated):</label>
+          <input id="edit-team1-players" type="text" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-slate-200">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Team 1 Score:</label>
+          <input id="edit-team1-score" type="number" min="0" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-slate-200">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Team 2 Players (comma-separated):</label>
+          <input id="edit-team2-players" type="text" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-slate-200">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Team 2 Score:</label>
+          <input id="edit-team2-score" type="number" min="0" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-slate-200">
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end pt-2">
+        <button onclick="closeEditModal()" class="px-3 py-1.5 text-xs bg-slate-700 hover:bg-slate-600 rounded">Cancel</button>
+        <button onclick="saveMatchEdit()" class="px-3 py-1.5 text-xs bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold rounded">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let apiBaseUrl = localStorage.getItem("mmr_api_url") || "https://grey-duck-mini-api.onrender.com";
     let cachedPlayers = [];
-    let currentGeneratedTeam1 = [];
-    let currentGeneratedTeam2 = [];
+    let cachedMatches = [];
 
     function promptApiUrl() {
       const input = prompt("Enter backend Render URL:", apiBaseUrl);
@@ -175,9 +187,7 @@
           dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
           text.innerText = "Connected";
           fetchLeaderboard();
-        } else {
-          throw new Error();
-        }
+        } else { throw new Error(); }
       } catch {
         dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
         text.innerText = "Offline";
@@ -208,19 +218,19 @@
         cachedPlayers = await res.json();
         
         cachedPlayers.sort((a, b) => {
-          const ordA = Math.max(0, a.mu - 3 * a.sigma);
-          const ordB = Math.max(0, b.mu - 3 * b.sigma);
+          const ordA = Math.max(0, a.mu - 1.5 * a.sigma);
+          const ordB = Math.max(0, b.mu - 1.5 * b.sigma);
           return ordB - ordA;
         });
 
         const tbody = document.getElementById("leaderboard-body");
         if (cachedPlayers.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No players registered yet.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No players registered.</td></tr>`;
           return;
         }
 
         tbody.innerHTML = cachedPlayers.map((p, i) => {
-          const ordinal = Math.max(0, p.mu - 3 * p.sigma).toFixed(2);
+          const ordinal = Math.max(0, p.mu - 1.5 * p.sigma).toFixed(1);
           return `
             <tr class="hover:bg-slate-800/50">
               <td class="p-3 font-mono text-slate-400">#${i + 1}</td>
@@ -230,20 +240,18 @@
             </tr>
           `;
         }).join('');
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     }
 
     function renderMatchmakerCheckboxes() {
       const container = document.getElementById("matchmaker-player-list");
       if (cachedPlayers.length === 0) {
-        container.innerHTML = `<span class="text-xs text-slate-500">No players found. Register some first!</span>`;
+        container.innerHTML = `<span class="text-xs text-slate-500">No players found.</span>`;
         return;
       }
       container.innerHTML = cachedPlayers.map(p => `
         <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer select-none">
-          <input type="checkbox" value="${p.name}" class="mm-player-cb rounded bg-slate-800 border-slate-600 text-emerald-500 focus:ring-0">
+          <input type="checkbox" value="${p.name}" class="mm-player-cb rounded bg-slate-800 border-slate-600 text-emerald-500">
           <span>${p.name}</span>
         </label>
       `).join('');
@@ -252,101 +260,137 @@
     function generateTeams(mode) {
       const checkboxes = document.querySelectorAll('.mm-player-cb:checked');
       const selectedNames = Array.from(checkboxes).map(cb => cb.value);
+      const numTeams = parseInt(document.getElementById("num-teams-select").value);
 
-      if (selectedNames.length < 2) {
-        alert("Please select at least 2 players to generate teams.");
+      if (selectedNames.length < numTeams) {
+        alert(`Select at least ${numTeams} players to generate teams.`);
         return;
       }
 
       let selectedObjects = cachedPlayers.filter(p => selectedNames.includes(p.name));
-      let team1 = [];
-      let team2 = [];
+      let teams = Array.from({ length: numTeams }, () => []);
 
       if (mode === 'random') {
-        // Shuffle
         selectedObjects.sort(() => Math.random() - 0.5);
-        selectedObjects.forEach((p, idx) => {
-          if (idx % 2 === 0) team1.push(p);
-          else team2.push(p);
-        });
+        selectedObjects.forEach((p, idx) => teams[idx % numTeams].push(p));
       } else {
-        // Balanced draft algorithm based on MMR ordinal
-        selectedObjects.sort((a, b) => {
-          const ordA = Math.max(0, a.mu - 3 * a.sigma);
-          const ordB = Math.max(0, b.mu - 3 * b.sigma);
-          return ordB - ordA;
-        });
-
-        let sum1 = 0, sum2 = 0;
+        selectedObjects.sort((a, b) => (b.mu - 1.5 * b.sigma) - (a.mu - 1.5 * a.sigma));
+        let sums = new Array(numTeams).fill(0);
         selectedObjects.forEach(p => {
-          const ord = Math.max(0, p.mu - 3 * p.sigma);
-          if (sum1 <= sum2) {
-            team1.push(p);
-            sum1 += ord;
-          } else {
-            team2.push(p);
-            sum2 += ord;
-          }
+          let minIdx = sums.indexOf(Math.min(...sums));
+          teams[minIdx].push(p);
+          sums[minIdx] += Math.max(0, p.mu - 1.5 * p.sigma);
         });
       }
 
-      currentGeneratedTeam1 = team1.map(p => p.name);
-      currentGeneratedTeam2 = team2.map(p => p.name);
-
-      const calcAvg = t => (t.reduce((acc, p) => acc + Math.max(0, p.mu - 3 * p.sigma), 0) / (t.length || 1)).toFixed(2);
-
-      document.getElementById("team1-list").innerHTML = team1.map(p => `<li>• ${p.name}</li>`).join('');
-      document.getElementById("team2-list").innerHTML = team2.map(p => `<li>• ${p.name}</li>`).join('');
-      document.getElementById("team1-avg-mmr").innerText = `Avg MMR: ${calcAvg(team1)}`;
-      document.getElementById("team2-avg-mmr").innerText = `Avg MMR: ${calcAvg(team2)}`;
-
-      document.getElementById("generated-teams-container").classList.remove("hidden");
-    }
-
-    function sendTeamsToRecord() {
-      switchTab("record");
-      const sel1 = document.getElementById("match-team1");
-      const sel2 = document.getElementById("match-team2");
-
-      Array.from(sel1.options).forEach(opt => opt.selected = currentGeneratedTeam1.includes(opt.value));
-      Array.from(sel2.options).forEach(opt => opt.selected = currentGeneratedTeam2.includes(opt.value));
+      const container = document.getElementById("generated-teams-container");
+      container.classList.remove("hidden");
+      container.innerHTML = teams.map((team, i) => {
+        const avg = (team.reduce((acc, p) => acc + Math.max(0, p.mu - 1.5 * p.sigma), 0) / (team.length || 1)).toFixed(1);
+        return `
+          <div class="bg-slate-800 border border-slate-700 p-3 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-bold text-emerald-400 text-sm">Team ${i + 1}</h3>
+              <span class="text-xs font-mono text-slate-400">Avg MMR: ${avg}</span>
+            </div>
+            <ul class="text-xs text-slate-200 space-y-1">
+              ${team.map(p => `<li>• ${p.name}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }).join('');
     }
 
     async function fetchMatches() {
       try {
         const res = await fetch(`${apiBaseUrl}/matches/`);
         if (!res.ok) throw new Error();
-        const matches = await res.json();
-        const container = document.getElementById("matches-container");
+        cachedMatches = await res.json();
+        const container = document.getElementById("matches-grouped-container");
 
-        if (matches.length === 0) {
-          container.innerHTML = `<p class="text-slate-500 text-center py-4">No matches recorded yet.</p>`;
+        if (cachedMatches.length === 0) {
+          container.innerHTML = `<p class="text-slate-500 text-center py-4">No matches played yet.</p>`;
           return;
         }
 
-        container.innerHTML = matches.map(m => {
-          const date = new Date(m.created_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-          const t1Win = m.team1_score > m.team2_score;
-          return `
-            <div class="bg-slate-800 border border-slate-700 p-3 rounded-lg flex flex-col md:flex-row justify-between items-center gap-3">
-              <div class="text-xs font-mono text-slate-400">${date}</div>
-              <div class="flex items-center gap-4 text-sm w-full md:w-auto justify-center">
-                <div class="text-right ${t1Win ? 'text-emerald-400 font-bold' : 'text-slate-300'}">
-                  <div>${m.team1_players}</div>
-                  <div class="text-xs font-mono opacity-80">Score: ${m.team1_score}</div>
-                </div>
-                <div class="text-slate-500 font-bold">VS</div>
-                <div class="text-left ${!t1Win ? 'text-indigo-400 font-bold' : 'text-slate-300'}">
-                  <div>${m.team2_players}</div>
-                  <div class="text-xs font-mono opacity-80">Score: ${m.team2_score}</div>
-                </div>
-              </div>
+        // Group matches by date
+        const grouped = {};
+        cachedMatches.forEach(m => {
+          const dateStr = new Date(m.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+          if (!grouped[dateStr]) grouped[dateStr] = [];
+          grouped[dateStr].push(m);
+        });
+
+        container.innerHTML = Object.keys(grouped).map(date => `
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-emerald-400 border-b border-slate-700 pb-1">${date}</h3>
+            <div class="space-y-2">
+              ${grouped[date].map(m => {
+                const t1Win = m.team1_score > m.team2_score;
+                return `
+                  <div class="bg-slate-800 border border-slate-700 p-3 rounded-lg flex justify-between items-center text-xs">
+                    <div class="flex items-center gap-3">
+                      <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">+${m.mmr_change} MMR</span>
+                      <div>
+                        <span class="${t1Win ? 'text-emerald-400 font-bold' : 'text-slate-300'}">${m.team1_players} (${m.team1_score})</span>
+                        <span class="text-slate-500 font-bold mx-1">vs</span>
+                        <span class="${!t1Win ? 'text-indigo-400 font-bold' : 'text-slate-300'}">${m.team2_players} (${m.team2_score})</span>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <button onclick="openEditModal(${m.id})" class="text-slate-400 hover:text-slate-200">✏️</button>
+                      <button onclick="deleteMatch(${m.id})" class="text-rose-400 hover:text-rose-200">🗑️</button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
             </div>
-          `;
-        }).join('');
-      } catch (err) {
-        console.error(err);
-      }
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    function openEditModal(id) {
+      const match = cachedMatches.find(m => m.id === id);
+      if (!match) return;
+      document.getElementById("edit-match-id").value = match.id;
+      document.getElementById("edit-team1-players").value = match.team1_players;
+      document.getElementById("edit-team1-score").value = match.team1_score;
+      document.getElementById("edit-team2-players").value = match.team2_players;
+      document.getElementById("edit-team2-score").value = match.team2_score;
+      document.getElementById("edit-modal").classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+      document.getElementById("edit-modal").classList.add("hidden");
+    }
+
+    async function saveMatchEdit() {
+      const id = document.getElementById("edit-match-id").value;
+      const t1 = document.getElementById("edit-team1-players").value.split(",").map(s => s.trim());
+      const t2 = document.getElementById("edit-team2-players").value.split(",").map(s => s.trim());
+      const s1 = parseInt(document.getElementById("edit-team1-score").value);
+      const s2 = parseInt(document.getElementById("edit-team2-score").value);
+
+      try {
+        const res = await fetch(`${apiBaseUrl}/matches/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ team1_players: t1, team2_players: t2, team1_score: s1, team2_score: s2 })
+        });
+        if (res.ok) {
+          closeEditModal();
+          fetchMatches();
+        } else { alert("Failed to save match edit."); }
+      } catch { alert("Server request failed."); }
+    }
+
+    async function deleteMatch(id) {
+      if (!confirm("Delete this match record? Ratings will recalculate.")) return;
+      try {
+        const res = await fetch(`${apiBaseUrl}/matches/${id}`, { method: "DELETE" });
+        if (res.ok) fetchMatches();
+      } catch { alert("Failed to delete match."); }
     }
 
     function populatePlayerDropdowns() {
@@ -377,9 +421,7 @@
           const data = await res.json();
           alert(`Error: ${data.detail || "Could not register player"}`);
         }
-      } catch (err) {
-        alert("Server request failed.");
-      }
+      } catch { alert("Server request failed."); }
     }
 
     async function submitMatch(e) {
@@ -398,23 +440,14 @@
         const res = await fetch(`${apiBaseUrl}/matches/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            team1_players: t1,
-            team2_players: t2,
-            team1_score: s1,
-            team2_score: s2
-          })
+          body: JSON.stringify({ team1_players: t1, team2_players: t2, team1_score: s1, team2_score: s2 })
         });
 
         if (res.ok) {
           alert("Match recorded!");
           switchTab("matches");
-        } else {
-          alert("Failed to submit match.");
-        }
-      } catch (err) {
-        alert("Server request failed.");
-      }
+        } else { alert("Failed to submit match."); }
+      } catch { alert("Server request failed."); }
     }
 
     checkApiHealth();
