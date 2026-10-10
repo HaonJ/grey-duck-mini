@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Float, Integer, String, create_engine
+from sqlalchemy import Column, DateTime, Float, Integer, String, create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 TURSO_DB_URL = os.getenv("TURSO_DATABASE_URL")
@@ -24,7 +24,6 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    # Scaled OpenSkill values (Default starting rating ~ 500.0)
     mu = Column(Float, default=1000.0)
     sigma = Column(Float, default=333.33)
     wins = Column(Integer, default=0)
@@ -36,11 +35,21 @@ class Match(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    team1_players = Column(String, nullable=False)  # Comma-separated names
-    team2_players = Column(String, nullable=False)  # Comma-separated names
+    team1_players = Column(String, nullable=False)
+    team2_players = Column(String, nullable=False)
     team1_score = Column(Integer, nullable=False)
     team2_score = Column(Integer, nullable=False)
-    mmr_change = Column(Float, default=0.0)  # Stores MMR delta per match
+    mmr_change = Column(Float, default=0.0)
 
 
+# Create missing tables
 Base.metadata.create_all(bind=engine)
+
+# Auto-migrate: Safely add 'mmr_change' column if it doesn't exist yet
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE matches ADD COLUMN mmr_change FLOAT DEFAULT 0.0;"))
+        conn.commit()
+except Exception:
+    # Column already exists or table was just created; safely ignore
+    pass
